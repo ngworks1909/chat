@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  userId           String    @id @default(cuid())
+  username         String
+  email            String    @unique
+  password         String
+  image            String    @default("https://github.com/shadcn.png")
+  mobile           String    @unique
+  token            String    @default("")
+  about            String    @default("Hey there! I am using Whatsapp.")
+  friends          Friend[]  @relation("Friends")
+  associates       Friend[]  @relation("Associates")
+  outgoingRequests Request[] @relation("Initiator")
+  incomingRequests Request[] @relation("Recipient")
+}
+
+model Friend {
+  userId           String    @id
+  user             User      @relation("Friends", fields: [userId], references: [userId])
+  friendId         String
+  friend           User      @relation("Associates", fields: [friendId], references: [userId])
+  last             Last      @default(None)
+  messageType  MessageType @default(text)
+  lastMessage      String    @default("")
+  lastStatus       MessageStatus @default(Sent)
+  messageCount     Int       @default(0)
+  time             DateTime  @default(now())
+  incomingMessages Message[] @relation("Reciever")
+  outgoingMessages Message[] @relation("Sender")
+}
+
+model Message {
+  messageId      Int           @id @default(autoincrement())
+  senderId       String
+  sender         Friend        @relation("Sender", fields: [senderId], references: [userId])
+  recieverId     String
+  reciever       Friend        @relation("Reciever", fields: [recieverId], references: [userId])
+  message        String
+  type           MessageType   @default(text)
+  messageStatus  MessageStatus @default(Sent)
+  date           DateTime      @default(now())
+  senderDelete   Boolean       @default(false)
+  recieverDelete Boolean       @default(false)
+}
+
+model Request {
+  requestId   String       @id @default(cuid())
+  senderId    String
+  sender      User         @relation("Initiator", fields: [senderId], references: [userId])
+  recieverId  String
+  reciever    User         @relation("Recipient", fields: [recieverId], references: [userId])
+  sentDate    DateTime     @default(now())
+  status      FriendStatus @default(Sent)
+}
+
+enum FriendStatus {
+  Sent
+  Friends
+}
+
+enum MessageStatus {
+  Sent
+  Delivered
+  Seen
+}
+
+enum MessageType {
+  text
+  image
+  audio
+  video
+}
+
+enum Last {
+  None
+  Incoming
+  Outgoing
+}
+
+
